@@ -11,17 +11,19 @@ contains
 	 v(1:n)=2.0d0*v(1:n)-1.0d0
   end subroutine allocate_rvec
 !外積(cross product)を求めるサブルーチン
-  subroutine cal_cross_product_2_7(u,v,w)
+  !演習2.7
+  function cross_product_2_7(u,v) result(w)
     double precision,intent(in) :: u(:),v(:)
-	double precision,allocatable,intent(out) :: w(:)
+	double precision,allocatable :: w(:)
     integer :: n
 	  n=size(u)
 	  allocate(w(n))
 	  w(:)=cshift(u,1)*cshift(v,2)-cshift(u,2)*cshift(v,1)
-  end subroutine cal_cross_product_2_7
-  subroutine cal_cross_product_3_21(u,v,w)
+  end function cross_product_2_7
+  !演習3.21
+  function cross_product_3_21(u,v) result(w)
     double precision,intent(in) :: u(:),v(:)
-	double precision,allocatable,intent(out) :: w(:)
+	double precision,allocatable :: w(:)
 	double precision,allocatable :: tmp1(:,:),tmp2(:,:),tmp3(:,:)
 	double precision :: det
     integer :: i,j,n
@@ -37,7 +39,7 @@ contains
 		 tmp3(:,:)=tmp2(1:2,1:2)
 		 w(i)=tmp3(1,1)*tmp3(2,2)-tmp3(1,2)*tmp3(2,1)
 	  end do
-  end subroutine cal_cross_product_3_21
+  end function cross_product_3_21
 end module vec_subprogs
 
 
@@ -59,9 +61,7 @@ program main
 	write(*,'(100e12.4)') b(:)
 	!A,Bの外積を計算
 	write(*,*) 'cross product A*B= C by p2.7'
-	call cal_cross_product_2_7(a,b,c)
-	write(*,'(100e12.4)') c(:)
+	write(*,'(100e12.4)') cross_product_2_7(a,b)
 	write(*,*) 'cross product A*B= D by p3.21'
-	call cal_cross_product_3_21(a,b,d)
-	write(*,'(100e12.4)') d(:)
+	write(*,'(100e12.4)') cross_product_3_21(a,b)
 end program main
