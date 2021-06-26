@@ -1,7 +1,7 @@
 module globals
-  real(8), save :: dx, d1, ramda, l = 1.0d0, alpha=0.01d0, dt = 1.0d0
-  integer, save :: i, n, nstep = 10
-  character (len=4) :: fno
+  real(8), save :: dx, d1, dt = 0.001, l = 1.0d0, alpha=0.01d0
+  integer, save :: i, n, nstep = 10000
+  character (len=5) :: fno
   character (len=30) :: fname
 end module globals
 
@@ -28,7 +28,7 @@ subroutine eular_explicit(phi, n1, phi2, x)
     !x =0.5L のときの境界条件は1.24の求め方になる
     phi(:) = phi2(:)
     1 continue
-    if (mod(istep, 1) == 0) call output(phi, x, n1, istep)
+    if (mod(istep, 1000) == 0) call output(phi, x, n1, istep)
     !各時間刻みごとに結果を出力す
   end do
 end subroutine eular_explicit
@@ -40,12 +40,12 @@ subroutine output(phi, x, n1, istep)
   real(8), intent(inout) :: x
   integer, intent(in) :: n1, istep
   !計算ステップごとに出力ファイルを作成
-  write(fno, fmt='(i3.3)')istep
+  write(fno, fmt='(i5.5)') istep
   fname = 'output_6.21'//fno// '.d'
   do i = 1, n1
     x = dx * (i-1)
-    open(istep, file='output6.21_'//fno// '.d')
-    write(istep , *) x, phi(i)
+    open(istep, file='output6.21_'//fno//'.d')
+    write(istep, *) x, phi(i)
   end do
   close(istep)
 end subroutine
@@ -78,7 +78,7 @@ program ensyu21
   write(*,*) ' input n1 '
   read(*,*) n1
   dx = 1.0d0 / (n1-1)
-  d1 = (alpha * dt) / (dx*dx)
+  d1 = (alpha * dt) / dx**2
   write(*,*) d1
   write(*,*) ' '
   allocate(phi(n1), phi2(n1))
