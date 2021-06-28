@@ -113,7 +113,7 @@ contains
   subroutine euler_explicit
     double precision,allocatable :: phi(:,:),phi2(:,:)
 	double precision :: a,dx1,dx2,d1,d2,dt,t,er,er0=1.0d-6
-	integer :: i,j,istep,nstep=5000,pstep=10,n1,n2
+	integer :: i,j,istep,nstep=2000,pstep=10,n1,n2
 	! phi:求める関数 dx1,dx2:各方向の刻み幅 n1,n2:各方向の分割数 istep:経過回数 nstep:istepの上限値
 	  write(*,'(a)',advance='no') ' input diffusion number alpha : '
       read(*,*) a  ! 拡散係数alphaの設定
@@ -121,7 +121,8 @@ contains
       call set_dbc(phi,dx1,dx2,n1,n2)    ! ディリクレ境界条件の設定
 	  call set_nbc(phi,n1,n2)  ! ノイマン境界条件の設定
 	  allocate(phi2(n1,n2))
-	  dt = dx1**2.0d0*dx2**2.0d0/(2.0d0*a*(dx1**2.0d0+dx2**2.0d0+1.0d-2))
+	  !dt = dx1**2.0d0*dx2**2.0d0/(2.0d0*a*(dx1**2.0d0+dx2**2.0d0+1.0d-2))
+	  dt = 5.0d-4
 	  d1 = a*dt/dx1**2.0d0
 	  d2 = a*dt/dx2**2.0d0
 	  phi2(:,:) = phi(:,:)
@@ -146,7 +147,7 @@ contains
 		call chk_steady(phi,phi2,n1,n2,er)
 		phi(:,:)=phi2(:,:)
 		write(*,*) 'istep,er=',istep,er
-		if(er<er0) exit
+		!if(er<er0) exit
 	  end do
 	  call theory(dx1,dx2,n1,n2)
   end subroutine euler_explicit
