@@ -110,64 +110,10 @@ contains
 	close(12)
   end subroutine output
   
-  ! --- SOR法用副プログラム --- !
-  
-  subroutine chk_err(phi,c,e,f,n1,n2,er)  ! 誤差を確認
-    double precision,intent(in) :: phi(:,:),c,e,f
-	integer,intent(in) :: n1,n2
-	double precision,intent(out) :: er
-    double precision :: rhs
-	integer :: i,j
-         er=0.0d0
-		 do j=2,n2-1     ! 内部の格子点に対する
-	        do i=2,n1-1  ! 演算を二重ループで行う
-	  	       rhs      = -e*(phi(i-1,j)+phi(i+1,j))&
-		                  -f*(phi(i,j-1)+phi(i,j+1))&
-						  +c*phi(i,j)
-		       er  = er+(rhs-phi(i,j))**2  ! 残差ベクトルの内積をerとするときはここで終了
-		    end do
-	     end do
-		 er = sqrt(er)  ! 残差ベクトルの大きさを残差erとしている
-  end subroutine chk_err
-  
-  subroutine set_omg(n1,n2,omg)  ! ラプラス方程式の差分法に対するomega0を設定(汎用)
-    integer,intent(in) :: n1,n2
-	double precision,intent(out) :: omg
-	double precision :: pi
-	  pi=4.0d0*atan(1.0d0)
-	  if(n1/=n2 .or. n2<3) stop &
-	     ' cannot set acceleration parameter omega0 for SOR method, n1/=n2 or n1,n2<3 '
-		 ! この項を書き換えて手動設定などにするのも手
-	  omg=2.0d0/(1.0d0+sin(pi/(dble(n1)-1.0d0)))
-  end subroutine set_omg
-  
-  subroutine sor_5p(phi,c,e,f,dx1,dx2,er0,n1,n2)
-	double precision,intent(inout) :: phi(:,:)
-	double precision,intent(in) :: c,e,f,dx1,dx2,er0
-	integer,intent(in) :: n1,n2
-	double precision :: omg,rhs,er
-	integer :: i,j,itr,itrmax=100
-	! phi:求める関数 dx1,dx2:各方向の刻み幅 n1,n2:各方向の分割数 itr:試行回数 itrmax:itrの上限値
-	  call set_omg(n1,n2,omg)
-      do itr=1,itrmax    ! SQR法の反復計算
-         do j=2,n2-1     ! 内部の格子点に対する
-	        do i=2,n1-1  ! 演算を二重ループで行う
-	  	       rhs      = -e*(phi(i-1,j)+phi(i+1,j))&
-		                  -f*(phi(i,j-1)+phi(i,j+1))&
-						  +c*phi(i,j)
-		       phi(i,j) = phi(i,j)+omg*(rhs-phi(i,j))
-		    end do
-	     end do
-   	     call chk_err(phi,c,e,f,n1,n2,er)  ! 誤差を確認
-!	     write(*,*) 'itr,er=',itr,er     ! 途中経過の出力
-	     if(er<er0) exit  ! 誤差が閾値er0より小さければ反復終了
-      end do
-  end subroutine sor_5p
-  
   subroutine euler_implicit
     double precision,allocatable :: phi(:,:),phi2(:,:)
 	double precision :: a,c,dx1,dx2,d1,d2,e,f,dt,t,er,er0=1.0d-6
-	integer :: i,j,istep,nstep=10,pstep=1,n1,n2
+	integer :: i,j,istep,nstep=2000,pstep=1,n1,n2
 	! phi:求める関数 dx1,dx2:各方向の刻み幅 n1,n2:各方向の分割数 istep:経過回数 nstep:istepの上限値
 	  write(*,'(a)',advance='no') ' input diffusion number alpha : '
       read(*,*) a  ! 拡散係数alphaの設定
@@ -183,15 +129,26 @@ contains
 	  c  = (1.0d0+2.0d0*d1+2.0d0*d2)**(-1.0d0)
 	  e  = -c*d1
 	  f  = -c*d2
-	  phi2(:,:) = phi(:,:)
+	  phi2(:,:)=phi(:,:)
 	  do istep=1,nstep
-	     call sor_5p(phi2(:,:),c,e,f,dx1,dx2,er0,n1,n2)
-		 call set_nbc(phi2,n1,n2)
-		 if(mod(istep,pstep)==0) call output(phi,dx1,dx2,istep,n1,n2)
+	     do j=2,n2-1     ! 内部の格子点に対する
+	        do i=2,n1-1  ! 演算を二重ループで行う
+	  	       phi2(i,j) = -e*(phi2(i-1,j)+phi2(i+1,j))&
+		                   -f*(phi2(i,j-1)+phi2(i,j+1))&
+						   +c*phi(i,j)
+		    end do
+	     end do
+!		 if(mod(istep,pstep)==0) call output(phi,dx1,dx2,istep,n1,n2)
+		 if(istep==5) call output(phi,dx1,dx2,istep,n1,n2)
+		 if(istep==50) call output(phi,dx1,dx2,istep,n1,n2)
+		 if(istep==100) call output(phi,dx1,dx2,istep,n1,n2)
+		 if(istep==200) call output(phi,dx1,dx2,istep,n1,n2)
+		 if(istep==400) call output(phi,dx1,dx2,istep,n1,n2)
+		 if(istep==2000) call output(phi,dx1,dx2,istep,n1,n2)
 		 call chk_steady(phi,phi2,n1,n2,er)
 		 phi(:,:)=phi2(:,:)
 		 write(*,*) 'istep,er=',istep,er
-		 if(er<er0) exit
+!		 if(er<er0) exit
 	  end do
 	  call theory(dx1,dx2,n1,n2)
 	  call print_gnuplot(dx1,dx2,phi)
