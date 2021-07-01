@@ -1,149 +1,91 @@
+!P166 演習6.13
 module subprogs
- implicit none
+  implicit none
 contains
- subroutine gauss_seidel(a,b,x,n,itrmax,er0)
-!a=係数行列,b=右辺ベクトル,itrmax=最大反復回数,er0=誤差のしきい値
-  integer, intent(in)::n,itrmax
-  real(8), intent(in)::a(n,n),b(n),er0
-  real(8), intent(out)::x(n)
-  real(8) s,er,rd(n),r(n)
-  integer i,itr
-  do i=1,n
-   if (a(i,i) == 0.0d0) stop 'a(i,i) == 0.0d0'
-   rd(i)=1.0d0/a(i,i) !対角要素が0でなければその逆数をrdとする
-  end do
-  x(1:n)=0.0d0  !初期解を0とする
-  do itr=1,itrmax !反復計算のループ
-   do i=1,n
-    s=dot_product(a(i,1:i-1),x(1:i-1))
-    s=s+dot_product(a(i,i+1:n),x(i+1:n))
-    x(i)=rd(i)*(b(i)-s)
-   end do
-   r(1:n)=b(1:n)-matmul(a,x) !残差ベクトル
-   er=dot_product(r,r)       !残差ベクトルの内積を誤差erとする
-   write(*,*) 'itr=',itr,'err=',er
-   if (er <= er0) then  !誤差erがしきい値er0以下なら反復計算終了
-    write(*,*) '# converged #'
-    exit !収束したら反復計算のループからぬける
-   end if
-  end do
- end subroutine gauss_seidel
- subroutine SOR(a,b,x,n,itrmax,er0)
-!a=係数行列,b=右辺ベクトル,itrmax=最大反復回数,er0=誤差のしきい値
-  integer, intent(in)::n,itrmax
-  real(8), intent(in)::a(n,n),b(n),er0
-  real(8), intent(out)::x(n)
-  real(8) s,er,rd(n),r(n),omega
-  integer i,itr
-  write(*,'(a)',advance='no') ' omega = '
-  read(*,*) omega
-  do i=1,n
-   if (a(i,i) == 0.0d0) stop 'a(i,i) == 0.0d0'
-   rd(i)=1.0d0/a(i,i) !対角要素が0でなければその逆数をrdとする
-  end do
-  x(1:n)=0.0d0  !初期解を0とする
-  do itr=1,itrmax !反復計算のループ
-   do i=1,n
-    s=dot_product(a(i,1:i-1),x(1:i-1))
-    s=s+dot_product(a(i,i+1:n),x(i+1:n))
-    x(i)=omega*(rd(i)*(b(i)-s)-x(i))+x(i)
-   end do
-   r(1:n)=b(1:n)-matmul(a,x) !残差ベクトル
-   er=dot_product(r,r)       !残差ベクトルの内積を誤差erとする
-   write(*,*) 'itr=',itr,'err=',er
-   if (er <= er0) then  !誤差erがしきい値er0以下なら反復計算終了
-    write(*,*) '# converged #'
-    exit !収束したら反復計算のループからぬける
-   end if
-  end do
- end subroutine SOR
-
- subroutine set_dd_mat(a, n, b, x)
-  real(8) a(n, n), s0, s, b(n), x(n)
-  integer, intent(in) :: n
-  integer i, j, k, seedsize
-  integer, allocatable :: seed(:)
-  call random_seed(size=seedsize) !初期値のサイズを取得
-  allocate(seed(seedsize)) !配列の割り当て
-  do k= 1, seedsize
-   call system_clock(count=seed(k)) !時間を取得
-  end do
-  call random_seed(put=seed(:)) !初期値を与える
-  call random_number(a(1:n, 1:n))
-  deallocate(seed) 
-!右辺のシグマの計算。1行ずつ優位かどうか判定する
-  do i = 1, n
-   s0 = 0.0d0
-   s = 0.0d0
-   do j = 1, n
-    s0 = abs(a(i, j)) + s0
-   end do 
-!ここで1つの行の中の対角要素以外の和が完成する
-   s = s0 -abs(a(i, i))
-!もし優位じゃなかったらその行の要素を入れ替えてまた比較する無限ループ
-   if ( abs(a(i, i)) <= s) then
-    do
-     call random_seed(size=seedsize) !初期値のサイズを取得
-     allocate(seed(seedsize)) !配列の割り当て
-     do k= 1, seedsize
-      call system_clock(count=seed(k)) !時間を取得
-     end do
-     call random_seed(put=seed(:)) !初期値を与える
-     call random_number(a(i, 1:n)) !該当の行に新しい乱数を入れる
-     deallocate(seed)
-     s0 = 0.0d0 !s,s0をリセットする
-     s = 0.0d0
-     do k = 1, n
-      s0 = abs(a(i, k)) + s0
-     end do 
-     s = s0 -abs(a(i, i))
- !もし優位になったら無限ループから抜け出して、次の行を確認
-     if ( abs(a(i, i)) > s) then
-      write(*,*) i, ' abs(a(i, i)) > s '
-      go to 1
-     end if
+  
+  subroutine sqr(a,b,x,n,itrmax,er0)
+    ! a=係数行列,b=右辺ベクトル,itrmax=最大反復回数,er0=誤差の閾値
+	integer,intent(in) :: n,itrmax
+	double precision,intent(in) :: a(n,n),b(n),er0
+	double precision,intent(out) :: x(n)
+	double precision :: s,er,rd(n),r(n),omg=1.0d0
+	integer :: i,itr
+	! 対角要素が0でなければその逆数をrdとする
+	do i=1,n
+	   if(a(i,i)==0.0d0) stop 'a(i,i)==0.0d0'
+	   rd(i)=1.0d0/a(i,i)
+	end do
+	x(1:n)=0.0d0  ! 初期解を0とする
+	do itr=1,itrmax  ! 反復計算のループ(最大itrmax回の反復)
+	   !上三角行列に初期値xを与えて次のxを計算
+	   do i=1,n
+	      s=dot_product(a(i,1:i-1),x(1:i-1))
+	      s=s+dot_product(a(i,i+1:n),x(i+1:n))
+	      x(i)=x(i)+omg*(rd(i)*(b(i)-s)-x(i))
+	   end do
+	   r(1:n)=b(1:n)-matmul(a,x)  ! 残差ベクトル
+	   er=dot_product(r,r)        ! 残差ベクトルの内積を誤差erとする
+	   write(*,*) 'itr=',itr,'err=',er  ! 途中経過の出力
+	   if(er<=er0) then  ! 誤差が閾値er0以下なら反復計算終了
+	      write(*,*) '# converged #'
+		  exit  ! 収束した場合には反復計算のループから抜ける
+       end if
+	end do
+  end subroutine sqr
+  
+  subroutine alloc_dd_mat(a,b,x,n)
+    ! nを取得しa,b,xを割付け、aとbに乱数を設定
+	integer,intent(out) :: n
+	double precision, allocatable, intent(out) :: a(:,:), b(:), x(:) ! 未割付け配列
+	double precision :: rd
+	integer :: i,j
+	write(*,'(a)',advance='no') ' input n : '
+    read(*,*) n
+    if(n<1 .or. n>100) stop 'n must be 0<n<100'
+	allocate (a(n,n),b(n),x(n))
+	call random_seed
+	call random_number(a)
+	call random_number(b)
+	! --- 対角優位行列Aの設定 ---
+	do i=1,n
+	   rd=0.1d0  !0出ないとき、狭義の対角優位行列
+       a(i,1:n)= 2.0d0 * a(i,1:n) - 1.0d0
+	   do j=1,n
+	      if(i/=j) then
+	         rd=rd+sqrt(a(i,j)**2)
+	      end if
+	   end do
+	   rd=1/rd
+	   a(i,1:n)=rd*a(i,1:n)
+	   a(i,i)=1.0d0
     end do
-!ループせずに次の行を確認
-    else if ( abs(a(i, i)) > s) then
-     write(*,*) i, ' abs(a(i, i)) > s '
-    end if
-   1 continue 
-  end do
- write(*,*) 'a='
- do i = 1, n
-  write(*,*) a(i, 1:n)
- end do
-  call random_seed(size=seedsize) !初期値のサイズを取得
-  allocate(seed(seedsize)) !配列の割り当て
-  do k= 1, seedsize
-   call system_clock(count=seed(k)) !時間を取得
-  end do
-  call random_seed(put=seed(:)) !初期値を与える
- call random_number(b(n))
- call random_number(x(n))
- write(*,*) 'b='
- do i = 1, n
-  write(*,*) b(i)
- end do
- end subroutine set_dd_mat
+	! --- 行列Bの設定 ---
+	b(1:n) = 2.0d0 * b(1:n) - 1.0d0
+  end subroutine alloc_dd_mat
+  
+  subroutine print_mat2(a)
+    double precision,intent(in) :: a(:, :)
+	integer :: i,n,m
+	m=size(a,1) !組み込み関数sizeによりaの最初の次元の寸法を得る
+	n=size(a,2) !組み込み関数sizeによりaの二番目の次元の寸法を得る
+	do i=1,m
+	   write(*,*) a(i, 1:n)
+	end do
+  end subroutine print_mat2
+  
 end module subprogs
+  
 
-program p6_11
- use subprogs
- implicit none
- real(8), allocatable::a(:,:),b(:),x(:)
- integer::n,i,itrmax=100
- real(8)::er0=1.0d-6
- write(*,*) 'input n'
- read(*, *) n
- allocate (a(n,n),b(n),x(n))
- call set_dd_mat(a,n,b,x)
- call gauss_seidel(a,b,x,n,itrmax,er0)
- write(*,*) 'gauss_seidel method'
- write(*,'(a)',advance='no') ' x = '
- write(*,*) x(:)
- call SOR(a,b,x,n,itrmax,er0)
- write(*,*) 'SOR method'
- write(*,'(a)',advance='no') ' x = '
- write(*,*) x(:)
-end program p6_11
+
+program main
+  use subprogs
+  implicit none
+  double precision,allocatable :: a(:,:),b(:),x(:)
+  integer :: n ,itrmax=100
+  double precision :: er0=1.0d-6
+  call alloc_dd_mat(a,b,x,n)  !係数行列a,右辺ベクトルbの設定など
+  call sqr(a,b,x,n,itrmax,er0)  !SQR法
+  ! ... 数値解xの出力などを行う
+  write(*,'(a)',advance='no') ' x : '
+  write(*,*) x(:)
+end program main
