@@ -125,7 +125,7 @@ contains
   subroutine euler_implicit
     double precision,allocatable :: phi(:,:),phi2(:,:)
 	double precision :: a,c,dx1,dx2,d1,d2,e,f,dt,t,er,er0=1.0d-6
-	integer :: i,j,istep,nstep=2000,pstep=1,n1,n2
+	integer :: i,j,istep,nstep=20,pstep=2,n1,n2
 	! phi:求める関数 dx1,dx2:各方向の刻み幅 n1,n2:各方向の分割数 istep:経過回数 nstep:istepの上限値
 	  write(*,'(a)',advance='no') ' input diffusion number alpha : '
       read(*,*) a  ! 拡散係数alphaの設定
@@ -135,25 +135,19 @@ contains
 	  allocate(phi2(n1,n2))
       phi2(:,:)=phi(:,:)  !phi2にも各条件を代入
 	  !dt = dx1**2.0d0*dx2**2.0d0/(2.0d0*a*(dx1**2.0d0+dx2**2.0d0+1.0d-2))  !時間増分の設定
-	  dt = 5.0d-4
+	  dt = 5.0d-2
 	  d1 = a*dt/dx1**2.0d0
 	  d2 = a*dt/dx2**2.0d0  
 	  c  = (1.0d0+2.0d0*d1+2.0d0*d2)**(-1.0d0)
 	  e  = -c*d1
 	  f  = -c*d2
 	  do istep=1,nstep
+	     call sor_5p(phi,phi2,e,f,c,er0,n1,n2)  !phi2をSOR法で解く
 	     do j=2,n2-1     ! 内部の格子点に対する
 	        do i=2,n1-1  ! 演算を二重ループで行う
-			   call sor_5p(phi,phi2,e,f,c,er0,n1,n2)  !phi2をSOR法で解く
 		    end do
 	     end do
-!		 if(mod(istep,pstep)==0) call output(phi,dx1,dx2,istep,n1,n2)
-		 if(istep==5) call output(phi,dx1,dx2,istep,n1,n2)
-		 if(istep==50) call output(phi,dx1,dx2,istep,n1,n2)
-		 if(istep==100) call output(phi,dx1,dx2,istep,n1,n2)
-		 if(istep==200) call output(phi,dx1,dx2,istep,n1,n2)
-		 if(istep==400) call output(phi,dx1,dx2,istep,n1,n2)
-		 if(istep==2000) call output(phi,dx1,dx2,istep,n1,n2)
+		 if(mod(istep,pstep)==0) call output(phi,dx1,dx2,istep,n1,n2)
 		 call chk_steady(phi,phi2,n1,n2,er)
 		 phi(:,:)=phi2(:,:)
 		 write(*,*) 'istep,er=',istep,er
@@ -250,7 +244,11 @@ end module subprogs
 program main
   use subprogs
   implicit none
+    double precision t1,t2
+    call cpu_time(t1)
     call euler_implicit
+	call cpu_time(t2)
+	write(*,*) t2-t1
 end program main
 
 ! ---------- memo ----------
