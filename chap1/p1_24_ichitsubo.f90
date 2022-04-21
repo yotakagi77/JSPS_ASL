@@ -17,7 +17,7 @@ program name
         do j=1,m+1
             x=L/dble(m)*dble(j-1)
             T=0.0d0
-                do i=1,5
+                do i=1,50
                     lambda=k*(dble(2*i-1)*acos(-1d0)/L)**2.0d0
                     T=T+ 4.0d0*L/acos(-1d0)/acos(-1d0) *exp(-lambda*time)*sin(dble(2*i-1)*acos(-1d0)*x/L)*((-1.0d0)**dble(i-1))&
                     /(dble(2*i-1)**2.0d0)
