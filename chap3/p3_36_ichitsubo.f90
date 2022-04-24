@@ -1,10 +1,11 @@
 module subprog
     implicit none
+    real(kind(1d0)) b,c,d,e
 contains
     function eval2x2mat(a) result(eval)
         real(kind(1d0)) ,intent(in):: a(:,:)
         complex(kind(1d0)) eval(2)
-        real(kind(1d0)) b,c,d,e
+        !real(kind(1d0)) b,c,d,e
         if(size(a,1)/=size(a,2)) stop "not square"
         if (size(a,1)/=2) stop "not 2x2 matrix"
         b = -0.5d0*(a(1,1)+a(2,2))
@@ -25,8 +26,13 @@ contains
 
     function vec(p) result(v)
         complex(kind(1d0)) p(2,2),v(2)
+        if (d>=0.0d0) then
         v(1)=-p(1,2)/sqrt((p(1,2)*p(1,2)+p(1,1)*p(1,1)))
         v(2)=p(1,1)/sqrt((p(1,2)*p(1,2)+p(1,1)*p(1,1)))
+        else 
+            v(1)=-p(1,2)/abs(p(1,2))
+            v(2)=p(1,1)/abs(p(1,2))
+        end if
     end function vec
 end module subprog
 
