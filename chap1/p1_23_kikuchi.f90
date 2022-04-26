@@ -14,7 +14,7 @@ program elliptic_Integral
     if (k > 1) stop 'stop, k > 1'
     do i = 1, n-1 
         a_n = a_n * ((2*i-1)**2) / ((2*i)**2)
-        k_n = k_n + (pi / 2) * a_n * ((2*k)**(2*i))
+        k_n = k_n + (pi / 2) * a_n * (k**(2*i))
         if (i == n-2) then
             dif = k_n
         else if (i == n-1) then
