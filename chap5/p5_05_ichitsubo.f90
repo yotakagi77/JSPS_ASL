@@ -165,13 +165,13 @@ program read_data
 
     open(fno,file="sample.d")
     call ex_read_file_data(fno,"int = ",in)
-    !call ex_read_file_data(fno,"double = ",d)
-    !call ex_read_file_data(fno,"character = ",c)
+    call ex_read_file_data(fno,"double = ",d)
+    call ex_read_file_data(fno,"character = ",c)
     close(fno)
     open(fno,file="sample.d")
     call ex_read_file_data(fno,"int(meiji) = ",in,n,n)
-    !call ex_read_file_data(fno,"double(meiji) = ",d,n,n)
-    !call ex_read_file_data(fno,"character(meiji) = ",c,n,n)
+    call ex_read_file_data(fno,"double(meiji) = ",d,n,n)
+    call ex_read_file_data(fno,"character(meiji) = ",c,n,n)
 
 end program read_data
 
