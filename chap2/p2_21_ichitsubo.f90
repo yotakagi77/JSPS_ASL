@@ -1,10 +1,10 @@
 program name
     implicit none
     integer n,i,j,k
-    real(kind(1d0)) ,allocatable :: a(:,:),b(:,:),c(:,:),c0(:,:)
+    real(kind(1d0)) ,allocatable :: a(:,:),b(:,:),c(:,:),c0(:,:),tmpa(:,:),tmpb(:,:)
     write(*,*) "input n :"
     read(*,*) n
-    allocate(a(n,n),b(n,n),c(n,n),c0(n,n))
+    allocate(a(n,n),b(n,n),c(n,n),c0(n,n),tmpa(n,n),tmpb(n,n))
 
     call random_seed
     call random_number(a)
@@ -29,6 +29,7 @@ program name
     end do
 
     c0=c
+    
 
     do i=1,n
         do j=1,n
@@ -36,24 +37,32 @@ program name
         end do
     end do
 
-    write(*,*) "(AB)^T="
+    write(*,*) "(AB)^T(without_kumikomi)="
     do i=1,n
     write(*,*) c(i,:)
     end do
 
-    c0=a
+    c=transpose(matmul(a,b))
+    write(*,*) "(AB)^T(use_kumikomi)="
+    do i=1,n
+    write(*,*) c(i,:)
+    end do
+
+
+
+    tmpa=a
 
     do i=1,n
         do j=1,n
-            a(i,j)=c0(j,i)
+            a(i,j)=tmpa(j,i)
         end do
     end do
 
-    c0=b
+    tmpb=b
 
     do i=1,n
         do j=1,n
-            b(i,j)=c0(j,i)
+            b(i,j)=tmpb(j,i)
         end do
     end do
 
@@ -66,10 +75,18 @@ program name
         end do
     end do
 
-    write(*,*) "A^T*B^T="
+    write(*,*) "A^T*B^T(without_kumikomi)="
     do i=1,n
     write(*,*) c(i,:)
     end do
+
+    c=matmul(transpose(tmpb),transpose(tmpa))
+    write(*,*) "A^T*B^T(use_kumikomi)="
+    do i=1,n
+    write(*,*) c(i,:)
+    end do
+
+
 
 
 end program name
