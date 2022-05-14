@@ -15,7 +15,7 @@ end module rotation
 program rotatex
     use rotation
     implicit none
-    real(8) x(2), y(2), sheta, pi
+    real(8) x(2), y(2), sheta
     write(*,*) 'input vector x(_, )'
     read(*,*) x(1)
     write(*,*) 'input vector x( ,_)'
