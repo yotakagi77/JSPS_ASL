@@ -1,7 +1,7 @@
 program name
     implicit none
     integer i
-    real(kind(1d0)) u(3),cos_alpha,cos_beta,cos_gamma,norm
+    real(kind(1d0)) u(3),cos_alpha,cos_beta,cos_gamma,norm,base(3,3)
 
     !call random_number(u)
     write(*,*)"input u1 :"
@@ -10,17 +10,18 @@ program name
     read(*,*) u(2)
     write(*,*)"input u3 :"
     read(*,*) u(3)
+    base=0.0d0
+    do i=1,3
+        base(i,i)=1.0d0
+    end do
     
-    norm=0
-do i=1,3
-    norm=norm+u(i)*u(i)
-end do
+    norm=sqrt(dot_product(u,u))
 
 if (norm==0.0d0) stop "stop"
-norm=Sqrt(norm)
-cos_alpha=u(1)/norm
-cos_beta=u(2)/norm
-cos_gamma=u(3)/norm
+
+cos_alpha=dot_product(base(1,:),u)/norm
+cos_beta=dot_product(base(2,:),u)/norm
+cos_gamma=dot_product(base(3,:),u)/norm
 write(*,*) "u(i)=",u(:)
 write(*,*) "cos_alpha=",cos_alpha
 write(*,*) "cos_beta=",cos_beta
