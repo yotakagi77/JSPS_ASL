@@ -14,8 +14,8 @@ contains
         end do
         do itr = 1, itrmax
             do i = 1, n
-                s =     dot_product(a(1, 1  :i-1), x(1  :i-1))
-                s = s + dot_product(a(1, i+1:n  ), x(i+1:n  ))
+                s =     dot_product(a(i, 1  :i-1), x(1  :i-1))
+                s = s + dot_product(a(i, i+1:n  ), x(i+1:n  ))
                 x(i) = rd(i) * (b(i)- s)
             end do
             r(1:n) = b(1:n) - matmul(a, x)
