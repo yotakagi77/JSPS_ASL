@@ -37,6 +37,7 @@ contains
   subroutine set_random_ab(a,b,x,n)
    integer :: i, j, n
    real(8), allocatable :: a(:,:), b(:), x(:)
+   write(*,*) 'input n'
    read(*,*) n
    allocate (a(n,n), b(n), x(n))
    call random_number(a)
