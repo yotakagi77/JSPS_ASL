@@ -11,23 +11,10 @@ contains
       x(2,i,j) = 1.0d0 / dble(n2 - 1) * dble(j - 1)
      enddo
     enddo
-
-    do i = 1, n1
-     write(*,*) (x(1,i,j), j= 1,n2)
-    enddo
-    do i = 1, n1
-     write(*,*) (x(2,i,j), j= 1,n2)
-    enddo
-
     do i = 1, n1
      phi(i,1) = sin(acos(-1.0d0) * x(1,i,1))   !Φの設定
     enddo
-    do i = 1, n1
-     do j = 2, n2
-      phi(i,j) = 0.0d0
-     enddo
-    enddo
-
+    phi(2:n1-1, 2:n2-1) = 0.0d0
     do i = 1, n1
        write(*,*) (phi(i,j), j = 1, n2)
     enddo
